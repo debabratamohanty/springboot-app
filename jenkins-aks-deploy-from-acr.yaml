@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: my-springboot-app
-        image: docker pull acracr2222.azurecr.io/acracr2222:latest
+        image: acracr2222.azurecr.io/acracr2222:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8085
