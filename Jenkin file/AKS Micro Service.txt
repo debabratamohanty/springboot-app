@@ -44,7 +44,7 @@ pipeline {
                }
                              }
                              
-          stage ('Deploy to K8s') {
+          stage ('Deploy to K8S') {
           steps {
           withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'K8S', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
     
