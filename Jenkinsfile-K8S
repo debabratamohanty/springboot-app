@@ -1,41 +1,61 @@
 pipeline {
     agent any
-
-    environment {
-        registry = "211223789150.dkr.ecr.us-east-2.amazonaws.com/my-python-repo"
-    }
+    
+    tools {
+        maven 'Maven3'
+        }
+        
+        environment{
+            registryName = "acracr2222"
+            registryCredential = 'ACR'
+            registryUrl = 'acracr2222.azurecr.io'
+            dockerImage = ''
+                   }
     
     stages {
-        stage('Checkout') {
+        stage('checkout') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/akannan1087/myPythonDockerRepo']]])
-            }
-        }
-    
-        stage ("Build image") {
-            steps {
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/debabratamohanty/springboot-app.git']])
+                  }
+                          }
+           
+        
+        stage ('Build') {
+        steps {
+            sh 'mvn clean install'           
+              }
+                        }
+                        
+         stage ('Build image') {
+        steps {
                 script {
-                    docker.build registry
-                }
-            }
-        }
-        
-        stage ("docker push") {
-         steps {
+                    dockerImage = docker.build registryName
+                       }
+              }
+                                } 
+                                
+         stage("Push image") {
+         steps{   
              script {
-                sh "aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 211223789150.dkr.ecr.us-east-2.amazonaws.com"
-                sh "docker push 211223789150.dkr.ecr.us-east-2.amazonaws.com/my-python-repo"
-                 
-             }
-           }   
-        }
-        
-        stage ("Kube Deploy") {
-            steps {
-                withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'K8S', namespace: '', serverUrl: '') {
-                 sh "kubectl apply -f eks-deploy-from-ecr.yaml"
+                docker.withRegistry( "http://${registryUrl}", registryCredential ) {
+                dockerImage.push()
+                                                                                   }
+                    }
+               }
+                             }
+                             
+          stage ('Deploy to K8S') {
+          steps {
+          withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'K8S', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
+    
+                                                                                                                                                                    }
+          sh('kubectl apply -f  jenkins-aks-deploy-from-acr.yaml')
+                                                                                                                                                                   
+    
                 }
-            }
-        }
-    }
-}
+
+                }
+            
+                                                                                                                                                                     
+                                 }
+        }  
